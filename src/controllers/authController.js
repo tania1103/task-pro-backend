@@ -1,14 +1,14 @@
-const asyncHandler = require('express-async-handler');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const Session = require('../models/Session');
+const asyncHandler = require("express-async-handler");
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
+const Session = require("../models/Session");
 
 /**
  * Generate JSON Web Token
  */
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+    expiresIn: process.env.JWT_EXPIRES_IN || "7d",
   });
 };
 
@@ -17,18 +17,18 @@ const generateToken = (id) => {
  */
 const createSession = async (userId, token, req) => {
   // Calculate expiry date
-  const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
-  const expiryDays = expiresIn.endsWith('d') ? parseInt(expiresIn) : 7;
-  
+  const expiresIn = process.env.JWT_EXPIRES_IN || "7d";
+  const expiryDays = expiresIn.endsWith("d") ? parseInt(expiresIn) : 7;
+
   const expires = new Date();
   expires.setDate(expires.getDate() + expiryDays);
-  
+
   // Create session
   await Session.create({
     userId,
     token,
     expires,
-    userAgent: req.headers['user-agent'],
+    userAgent: req.headers["user-agent"],
     ipAddress: req.ip,
   });
 };
@@ -46,7 +46,7 @@ const register = asyncHandler(async (req, res) => {
 
   if (userExists) {
     res.status(400);
-    throw new Error('User already exists');
+    throw new Error("User already exists");
   }
 
   // Create user
@@ -59,10 +59,10 @@ const register = asyncHandler(async (req, res) => {
   if (user) {
     // Generate token
     const token = generateToken(user._id);
-    
+
     // Create session
     await createSession(user._id, token, req);
-    
+
     res.status(201).json({
       user: {
         _id: user._id,
@@ -75,7 +75,7 @@ const register = asyncHandler(async (req, res) => {
     });
   } else {
     res.status(400);
-    throw new Error('Invalid user data');
+    throw new Error("Invalid user data");
   }
 });
 
@@ -88,16 +88,16 @@ const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
   // Find user by email
-  const user = await User.findOne({ email }).select('+password');
+  const user = await User.findOne({ email }).select("+password");
 
   // Check if user exists and password matches
   if (user && (await user.comparePassword(password))) {
     // Generate token
     const token = generateToken(user._id);
-    
+
     // Create session
     await createSession(user._id, token, req);
-    
+
     res.json({
       user: {
         _id: user._id,
@@ -110,7 +110,7 @@ const login = asyncHandler(async (req, res) => {
     });
   } else {
     res.status(401);
-    throw new Error('Invalid email or password');
+    throw new Error("Invalid email or password");
   }
 });
 
@@ -122,8 +122,8 @@ const login = asyncHandler(async (req, res) => {
 const logout = asyncHandler(async (req, res) => {
   // Remove session
   await Session.findOneAndDelete({ userId: req.user._id, token: req.token });
-  
-  res.json({ message: 'Logged out successfully' });
+
+  res.json({ message: "Logged out successfully" });
 });
 
 /**
@@ -139,6 +139,28 @@ const refreshUser = asyncHandler(async (req, res) => {
 });
 
 /**
+ * @desc    Get current logged-in user
+ * @route   GET /api/auth/me
+ * @access  Private
+ */
+const getCurrentUser = asyncHandler(async (req, res) => {
+  if (!req.user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  res.status(200).json({
+    user: {
+      _id: req.user._id,
+      name: req.user.name,
+      email: req.user.email,
+      avatar: req.user.avatar,
+      theme: req.user.theme,
+    },
+  });
+});
+
+/**
  * @desc    Google OAuth login/register
  * @route   POST /api/auth/google
  * @access  Public
@@ -146,7 +168,9 @@ const refreshUser = asyncHandler(async (req, res) => {
 const googleAuth = asyncHandler(async (req, res) => {
   // This would typically be handled by Passport.js
   // For now, just include a placeholder
-  res.status(501).json({ message: 'Google authentication not implemented yet' });
+  res
+    .status(501)
+    .json({ message: "Google authentication not implemented yet" });
 });
 
 module.exports = {
@@ -154,5 +178,6 @@ module.exports = {
   login,
   logout,
   refreshUser,
+  getCurrentUser,
   googleAuth,
 };
