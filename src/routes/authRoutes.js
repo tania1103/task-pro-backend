@@ -109,7 +109,7 @@ router.post("/login", validateLogin, login);
  *       401:
  *         description: Unauthorized
  */
-router.post("/refresh", refreshUser);
+router.post("/refresh", protect, refreshUser);
 
 /**
  * @route POST /api/auth/request-password-reset
