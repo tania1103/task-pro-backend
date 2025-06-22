@@ -36,6 +36,9 @@ const setupSwagger = require("./docs/swagger");
 const app = express();
 setupSwagger(app);
 
+const passport = require('./config/passport');
+app.use(passport.initialize());
+
 // Security headers
 app.use(helmet());
 
