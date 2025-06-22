@@ -62,7 +62,7 @@ exports.updateAvatar = async (req, res, next) => {
     // Update user with new avatar URL
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { avatar: result.secure_url },
+      { profileImage: result.secure_url },
       { new: true }
     ).select('-password');
     

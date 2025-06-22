@@ -15,8 +15,8 @@ const {
 const { protect } = require("../middlewares/authMiddleware");
 
 const {
-  validateColumnCreate,
-  validateColumnUpdate,
+  validate,
+  validations,
 } = require("../middlewares/validationMiddleware");
 
 const router = express.Router();
@@ -25,40 +25,11 @@ const router = express.Router();
 router.use(protect);
 
 /**
- * @swagger
- * /api/columns:
- *   post:
- *     summary: Create a new column
- *     tags: [Columns]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - title
- *               - boardId
- *             properties:
- *               title:
- *                 type: string
- *                 example: New Column
- *               boardId:
- *                 type: string
- *                 example: 60f1b5c5fc13ae001e000001
- *     responses:
- *       201:
- *         description: Column created successfully
- *       400:
- *         description: Validation error
- *       404:
- *         description: Board not found
- *       403:
- *         description: Unauthorized
+ * @route POST /api/columns
+ * @desc Create a new column in a board
+ * @access Private
  */
-router.post("/", validateColumnCreate, createColumn);
+router.post("/", validate(validations.validateColumnCreate), createColumn);
 
 /**
  * @swagger
@@ -86,70 +57,18 @@ router.post("/", validateColumnCreate, createColumn);
 router.get("/board/:boardId", getColumnsByBoardId);
 
 /**
- * @swagger
- * /api/columns/{id}:
- *   get:
- *     summary: Get a column by ID
- *     tags: [Columns]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *         description: Column ID
- *     responses:
- *       200:
- *         description: Column found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Column'
- *       403:
- *         description: Unauthorized
- *       404:
- *         description: Column not found
+ * @route GET /api/columns/:id
+ * @desc Get a column by ID
+ * @access Private
  */
 router.get("/:id", getColumnById);
 
 /**
- * @swagger
- * /api/columns/{id}:
- *   patch:
- *     summary: Update a column
- *     tags: [Columns]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *         description: Column ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *                 example: Updated Column
- *     responses:
- *       200:
- *         description: Column updated successfully
- *       400:
- *         description: Validation error
- *       403:
- *         description: Forbidden
- *       404:
- *         description: Column not found
+ * @route PUT /api/columns/:id
+ * @desc Update a column
+ * @access Private
  */
-router.patch("/:id", validateColumnUpdate, updateColumn);
+router.put("/:id", validate(validations.validateColumnUpdate), updateColumn);
 
 /**
  * @swagger
@@ -175,45 +94,11 @@ router.patch("/:id", validateColumnUpdate, updateColumn);
  */
 router.delete("/:id", deleteColumn);
 
+
 /**
- * @swagger
- * /api/columns/reorder:
- *   patch:
- *     summary: Update the order of columns in a board
- *     tags: [Columns]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - boardId
- *               - columnOrders
- *             properties:
- *               boardId:
- *                 type: string
- *                 example: 60f1b5c5fc13ae001e000001
- *               columnOrders:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: string
- *                     order:
- *                       type: number
- *     responses:
- *       200:
- *         description: Columns reordered successfully
- *       400:
- *         description: Validation error
- *       403:
- *         description: Unauthorized
- *       404:
- *         description: Board not found
+ * @route PATCH /api/columns/reorder
+ * @desc Update the order of columns in a board
+ * @access Private
  */
 router.patch("/reorder", updateColumnsOrder);
 

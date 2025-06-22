@@ -1,50 +1,43 @@
 const mongoose = require('mongoose');
 
-/**
- * Column Schema
- */
-const columnSchema = new mongoose.Schema(
-  {
-    title: {
-      type: String,
-      required: [true, 'Column title is required'],
-      trim: true,
-      minlength: [3, 'Title must be at least 3 characters'],
-      maxlength: [100, 'Title cannot exceed 100 characters'],
-    },
-    boardId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Board',
-      required: [true, 'Column must belong to a board'],
-    },
-    order: {
-      type: Number,
-      default: 0,
-    },
+const ColumnSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: [true, 'Please add a title'],
+    trim: true,
+    minlength: [3, 'Title must be at least 3 characters'],
+    maxlength: [50, 'Title cannot be more than 50 characters']
   },
-  {
-    timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
+  board: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Board',
+    required: true
+  },
+  order: {
+    type: Number,
+    default: 0
   }
-);
-
-/**
- * Virtual field for cards
- * This will create a virtual 'cards' property that will contain
- * all cards that reference this column
- */
-columnSchema.virtual('cards', {
-  ref: 'Card',
-  localField: '_id',
-  foreignField: 'columnId',
+}, {
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
 
-/**
- * Index for efficient queries
- */
-columnSchema.index({ boardId: 1, order: 1 });
+// Create index for faster queries
+ColumnSchema.index({ board: 1 });
 
-const Column = mongoose.model('Column', columnSchema);
+// Virtual for cards
+ColumnSchema.virtual('cards', {
+  ref: 'Card',
+  localField: '_id',
+  foreignField: 'column',
+  justOne: false
+});
 
-module.exports = Column;
+// Cascade delete cards when column is deleted
+ColumnSchema.pre('remove', async function(next) {
+  await this.model('Card').deleteMany({ column: this._id });
+  next();
+});
+
+module.exports = mongoose.model('Column', ColumnSchema);

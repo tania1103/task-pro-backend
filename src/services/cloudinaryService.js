@@ -7,6 +7,10 @@ const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
 const { promisify } = require('util');
 const unlinkAsync = promisify(fs.unlink);
+const { validateCloudinaryConfig } = require('../utils/validateConfig');
+
+// Verifică configurația Cloudinary înainte de utilizare
+validateCloudinaryConfig();
 
 // Configure Cloudinary from environment variables
 cloudinary.config({
@@ -23,6 +27,11 @@ cloudinary.config({
  */
 exports.uploadImage = async (filePath, options = {}) => {
   try {
+    // Verifică dacă fișierul există
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`File not found at path: ${filePath}`);
+    }
+    
     // Set default folder and transformation options
     const uploadOptions = {
       folder: 'task_pro/avatars',
@@ -42,12 +51,27 @@ exports.uploadImage = async (filePath, options = {}) => {
   } catch (error) {
     // Delete the local file in case of error
     try {
-      await unlinkAsync(filePath);
+      if (fs.existsSync(filePath)) {
+        await unlinkAsync(filePath);
+      }
     } catch (err) {
       console.error('Error deleting local file:', err);
     }
     
-    throw error;
+    // Adăugarea informațiilor contextuale la eroare
+    const enhancedError = new Error(`Cloudinary upload failed: ${error.message}`);
+    enhancedError.originalError = error;
+    enhancedError.filePath = filePath;
+    
+    // Log detaliat pentru debugging
+    console.error('Cloudinary upload error:', {
+      message: error.message,
+      filePath,
+      options,
+      stack: error.stack
+    });
+    
+    throw enhancedError;
   }
 };
 

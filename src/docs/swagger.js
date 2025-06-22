@@ -83,7 +83,7 @@ const swaggerOptions = {
               type: "string",
               example: "To Do",
             },
-            boardId: {
+            board: {
               type: "string",
               example: "60f1b5c5fc13ae001e000002",
             },
@@ -116,7 +116,7 @@ const swaggerOptions = {
               type: "string",
               example: "Add Swagger docs for all routes",
             },
-            columnId: { type: "string", example: "60f6e8d8b54764421c7b9a40" },
+            column: { type: "string", example: "60f6e8d8b54764421c7b9a40" },
             order: { type: "number", example: 1 },
             dueDate: { type: "string", format: "date", example: "2025-07-01" },
             priority: { type: "string", example: "high" },

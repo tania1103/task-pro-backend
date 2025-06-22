@@ -4,21 +4,20 @@
  */
 
 const express = require("express");
+const passport = require("passport");
+const jwt = require("jsonwebtoken");
+
 const {
   register,
   login,
   logout,
   refreshUser,
-  // refreshToken,
-  // requestPasswordReset,
-  // resetPassword,
   getCurrentUser,
 } = require("../controllers/authController");
 const { protect } = require("../middlewares/authMiddleware");
 const {
-  validateRegistration,
-  validateLogin,
-  validatePasswordReset,
+  validations,
+  validate
 } = require("../middlewares/validationMiddleware");
 
 const router = express.Router();
@@ -59,7 +58,7 @@ const router = express.Router();
  *       400:
  *         description: User already exists or invalid input
  */
-router.post("/register", validateRegistration, register);
+router.post("/register", validate(validations.validateRegistration), register);
 
 /**
  * @swagger
@@ -87,7 +86,7 @@ router.post("/register", validateRegistration, register);
  *       401:
  *         description: Invalid credentials
  */
-router.post("/login", validateLogin, login);
+router.post("/login", validate(validations.validateLogin), login);
 
 /**
  * @swagger
@@ -97,6 +96,18 @@ router.post("/login", validateLogin, login);
  *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - refreshToken
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *                 description: Refresh token primit la login
  *     responses:
  *       200:
  *         description: Logged out successfully
@@ -113,6 +124,15 @@ router.post("/logout", protect, logout);
  *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               refreshToken:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Token refreshed successfully
@@ -120,20 +140,6 @@ router.post("/logout", protect, logout);
  *         description: Unauthorized
  */
 router.post("/refresh", protect, refreshUser);
-
-/**
- * @route POST /api/auth/request-password-reset
- * @desc Send password reset email to user
- * @access Public
- */
-// router.post("/request-password-reset", requestPasswordReset);
-
-/**
- * @route POST /api/auth/reset-password
- * @desc Reset user password with token
- * @access Public
- */
-// router.post("/reset-password", validatePasswordReset, resetPassword);
 
 /**
  * @swagger
@@ -150,5 +156,64 @@ router.post("/refresh", protect, refreshUser);
  *         description: Unauthorized
  */
 router.get("/me", protect, getCurrentUser);
+
+/**
+ * @swagger
+ * /api/auth/google:
+ *   get:
+ *     summary: Start Google OAuth login
+ *     tags: [Auth]
+ *     responses:
+ *       302:
+ *         description: Redirect to Google for authentication
+ */
+router.get('/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+/**
+ * @swagger
+ * /api/auth/google/callback:
+ *   get:
+ *     summary: Google OAuth callback
+ *     tags: [Auth]
+ *     responses:
+ *       200:
+ *         description: Google authentication successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                 token:
+ *                   type: string
+ *       401:
+ *         description: Authentication failed
+ */
+router.get('/google/callback',
+  passport.authenticate('google', { session: false, failureRedirect: '/' }),
+  async (req, res) => {
+    // Generează JWT și returnează-l
+    const token = jwt.sign(
+      { id: req.user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || "20d" }
+    );
+    res.json({
+      user: {
+        _id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+        theme: req.user.theme,
+        profileImage: req.user.profileImage
+      },
+      token
+    });
+    //  Redirect spre frontend: 
+    // res.redirect(`${process.env.FRONTEND_URL}/auth/google/success?token=${token}`)
+  }
+);
 
 module.exports = router;
