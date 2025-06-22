@@ -1,7 +1,7 @@
-const asyncHandler = require('express-async-handler');
-const Board = require('../models/Board');
-const Column = require('../models/Column');
-const Card = require('../models/Card');
+const asyncHandler = require("express-async-handler");
+const Board = require("../models/Board");
+const Column = require("../models/Column");
+const Card = require("../models/Card");
 
 // Get all boards for a user
 const getBoards = asyncHandler(async (req, res) => {
@@ -12,15 +12,15 @@ const getBoards = asyncHandler(async (req, res) => {
 // Get a single board with columns and cards
 const getBoard = asyncHandler(async (req, res) => {
   const board = await Board.findById(req.params.id);
-  
+
   if (!board) {
     res.status(404);
-    throw new Error('Board not found');
+    throw new Error("Board not found");
   }
   
   if (board.owner.toString() !== req.user._id.toString()) {
     res.status(403);
-    throw new Error('Not authorized to access this board');
+    throw new Error("Not authorized to access this board");
   }
   
   const columns = await Column.find({ board: board._id }).sort({ order: 1 });
@@ -29,7 +29,7 @@ const getBoard = asyncHandler(async (req, res) => {
   const cards = await Card.find({ column: { $in: columnIds } }).sort({ order: 1 });
   
   const columnMap = {};
-  columns.forEach(column => {
+  columns.forEach((column) => {
     columnMap[column._id] = {
       ...column.toObject(),
       cards: [],
@@ -41,7 +41,7 @@ const getBoard = asyncHandler(async (req, res) => {
       columnMap[card.column].cards.push(card);
     }
   });
-  
+
   res.json({
     ...board.toObject(),
     columns: Object.values(columnMap),
@@ -76,40 +76,40 @@ const createBoard = async (req, res) => {
 // Update a board
 const updateBoard = asyncHandler(async (req, res) => {
   const board = await Board.findById(req.params.id);
-  
+
   if (!board) {
     res.status(404);
-    throw new Error('Board not found');
+    throw new Error("Board not found");
   }
   
   if (board.owner.toString() !== req.user._id.toString()) {
     res.status(403);
-    throw new Error('Not authorized to update this board');
+    throw new Error("Not authorized to update this board");
   }
-  
+
   const { title, icon, background } = req.body;
   
   if (title !== undefined) board.title = title;
   if (icon !== undefined) board.icon = icon;
   if (background !== undefined) board.background = background;
-  
+
   const updatedBoard = await board.save();
-  
+
   res.json(updatedBoard);
 });
 
 // Delete a board
 const deleteBoard = asyncHandler(async (req, res) => {
   const board = await Board.findById(req.params.id);
-  
+
   if (!board) {
     res.status(404);
-    throw new Error('Board not found');
+    throw new Error("Board not found");
   }
   
   if (board.owner.toString() !== req.user._id.toString()) {
     res.status(403);
-    throw new Error('Not authorized to delete this board');
+    throw new Error("Not authorized to delete this board");
   }
   
   const columns = await Column.find({ board: board._id });

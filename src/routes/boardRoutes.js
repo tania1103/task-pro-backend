@@ -11,6 +11,13 @@ const {
   updateBoard,
   deleteBoard,
 } = require("../controllers/boardController");
+const {
+  createBoard,
+  getBoards,
+  getBoard,
+  updateBoard,
+  deleteBoard,
+} = require("../controllers/boardController");
 const { protect } = require("../middlewares/authMiddleware");
 const {
   validate,

@@ -32,9 +32,27 @@ router.use(protect);
 router.post("/", validate(validations.validateColumnCreate), createColumn);
 
 /**
- * @route GET /api/columns/board/:boardId
- * @desc Get all columns for a specific board
- * @access Private
+ * @swagger
+ * /api/columns/board/{boardId}:
+ *   get:
+ *     summary: Get all columns for a specific board
+ *     tags: [Columns]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: boardId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID-ul boardului
+ *     responses:
+ *       200:
+ *         description: List of columns
+ *       404:
+ *         description: Board not found
+ *       403:
+ *         description: Unauthorized
  */
 router.get("/board/:boardId", getColumnsByBoardId);
 
@@ -53,11 +71,29 @@ router.get("/:id", getColumnById);
 router.put("/:id", validate(validations.validateColumnUpdate), updateColumn);
 
 /**
- * @route DELETE /api/columns/:id
- * @desc Delete a column
- * @access Private
+ * @swagger
+ * /api/columns/{id}:
+ *   delete:
+ *     summary: Delete a column
+ *     tags: [Columns]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: Column deleted successfully
+ *       404:
+ *         description: Column not found
+ *       403:
+ *         description: Unauthorized
  */
 router.delete("/:id", deleteColumn);
+
 
 /**
  * @route PATCH /api/columns/reorder
