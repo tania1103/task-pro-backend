@@ -107,6 +107,25 @@ const validations = {
       .isIn(["low", "medium", "high"])
       .withMessage("Priority must be low, medium, or high"),
   ],
+  updateCard: [
+    check("title")
+      .optional()
+      .isString()
+      .isLength({ min: 3 })
+      .withMessage("Title must be at least 3 characters")
+      .isLength({ max: 100 })
+      .withMessage("Title cannot exceed 100 characters"),
+    check("description").optional().isString(),
+    check("priority")
+      .optional()
+      .isIn(["low", "medium", "high"])
+      .withMessage("Priority must be low, medium, or high"),
+    check("deadline")
+      .optional()
+      .isISO8601()
+      .withMessage("Deadline must be a valid date"),
+    check("columnId").optional().isMongoId().withMessage("Invalid column ID"),
+  ],
 };
 
 module.exports = {
@@ -115,4 +134,10 @@ module.exports = {
   validateRegistration: validate(validations.register),
   validateLogin: validate(validations.login),
   validateProfileUpdate: validate(validations.profileUpdate),
+  validateBoardCreate: validate(validations.createBoard),
+  validateBoardUpdate: validate(validations.createBoard),
+  validateColumnCreate: validate(validations.createColumn),
+  validateColumnUpdate: validate(validations.createColumn),
+  validateCardCreate: validate(validations.createCard),
+  validateCardUpdate: validate(validations.updateCard),
 };
