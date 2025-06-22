@@ -3,68 +3,142 @@
  * @description Authentication routes for user registration, login, logout, etc.
  */
 
-const express = require('express');
-const { 
-  register, 
-  login, 
-  logout, 
-  refreshToken, 
-  requestPasswordReset, 
-  resetPassword,
-  getCurrentUser
-} = require('../controllers/authController');
-const { authMiddleware } = require('../middlewares/authMiddleware');
-const { validateRegistration, validateLogin, validatePasswordReset } = require('../middlewares/validationMiddleware');
+const express = require("express");
+const {
+  register,
+  login,
+  logout,
+  refreshUser,
+  // refreshToken,
+  // requestPasswordReset,
+  // resetPassword,
+  getCurrentUser,
+} = require("../controllers/authController");
+const { protect } = require("../middlewares/authMiddleware");
+const {
+  validateRegistration,
+  validateLogin,
+  validatePasswordReset,
+} = require("../middlewares/validationMiddleware");
 
 const router = express.Router();
 
 /**
- * @route POST /api/auth/register
- * @desc Register a new user
- * @access Public
+ * @swagger
+ * tags:
+ *   name: Auth
+ *   description: Authentication routes
  */
-router.post('/register', validateRegistration, register);
 
 /**
- * @route POST /api/auth/login
- * @desc Login user and return JWT token
- * @access Public
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *       400:
+ *         description: User already exists or invalid input
  */
-router.post('/login', validateLogin, login);
+router.post("/register", validateRegistration, register);
 
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Log in a user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *       401:
+ *         description: Invalid credentials
+ */
+router.post("/login", validateLogin, login);
 /**
  * @route POST /api/auth/logout
  * @desc Logout user and invalidate token
  * @access Private
  */
-router.post('/logout', authMiddleware, logout);
+// router.post("/logout", authMiddleware, logout);
 
 /**
- * @route POST /api/auth/refresh
- * @desc Refresh access token using refresh token
- * @access Public
+ * @swagger
+ * /api/auth/refresh:
+ *   post:
+ *     summary: Refresh user data using token
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Token refreshed successfully
+ *       401:
+ *         description: Unauthorized
  */
-router.post('/refresh', refreshToken);
+router.post("/refresh", protect, refreshUser);
 
 /**
  * @route POST /api/auth/request-password-reset
  * @desc Send password reset email to user
  * @access Public
  */
-router.post('/request-password-reset', requestPasswordReset);
+// router.post("/request-password-reset", requestPasswordReset);
 
 /**
  * @route POST /api/auth/reset-password
  * @desc Reset user password with token
  * @access Public
  */
-router.post('/reset-password', validatePasswordReset, resetPassword);
+// router.post("/reset-password", validatePasswordReset, resetPassword);
 
 /**
- * @route GET /api/auth/me
- * @desc Get current user information
- * @access Private
+ * @swagger
+ * /api/auth/me:
+ *   get:
+ *     summary: Get current authenticated user
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Returns current user info
+ *       401:
+ *         description: Unauthorized
  */
-router.get('/me', authMiddleware, getCurrentUser);
+router.get("/me", protect, getCurrentUser);
 
 module.exports = router;
