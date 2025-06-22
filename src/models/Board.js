@@ -1,49 +1,45 @@
+// filepath: d:\my projects\task-pro-backend\src\models\Board.js
 const mongoose = require('mongoose');
 
-/**
- * Board Schema
- */
-const boardSchema = new mongoose.Schema(
-  {
-    title: {
-      type: String,
-      required: [true, 'Board title is required'],
-      trim: true,
-      minlength: [3, 'Title must be at least 3 characters'],
-      maxlength: [100, 'Title cannot exceed 100 characters'],
-    },
-    icon: {
-      type: String,
-      default: '📋',
-    },
-    background: {
-      type: String,
-      default: 'bg-1', // Reference to a predefined background
-    },
-    owner: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: [true, 'Board owner is required'],
-    },
+const BoardSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: [true, 'Please add a title'],
+    trim: true,
+    minlength: [3, 'Title must be at least 3 characters'],
+    maxlength: [50, 'Title cannot be more than 50 characters']
   },
-  {
-    timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
+  icon: {
+    type: String,
+    default: 'project'
+  },
+  background: {
+    type: String,
+    default: ''
+  },
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   }
-);
-
-/**
- * Virtual field for columns
- * This will create a virtual 'columns' property that will contain
- * all columns that reference this board
- */
-boardSchema.virtual('columns', {
-  ref: 'Column',
-  localField: '_id',
-  foreignField: 'boardId',
+}, {
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
 
-const Board = mongoose.model('Board', boardSchema);
+// Virtual for columns
+BoardSchema.virtual('columns', {
+  ref: 'Column',
+  localField: '_id',
+  foreignField: 'board',
+  justOne: false
+});
 
-module.exports = Board;
+// Cascade delete columns when board is deleted
+BoardSchema.pre('remove', async function(next) {
+  await this.model('Column').deleteMany({ board: this._id });
+  next();
+});
+
+module.exports = mongoose.model('Board', BoardSchema);

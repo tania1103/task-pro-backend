@@ -21,11 +21,11 @@ const swaggerOptions = {
         {
           url: 'http://localhost:5000',
           description: 'Development server'
-        },
-        {
-          url: 'https://task-pro-api.herokuapp.com',
-          description: 'Production server'
         }
+        // {
+        //   url: 'https://task-pro-api.herokuapp.com',
+        //   description: 'Production server'
+        // }
       ]
     },
     components: {

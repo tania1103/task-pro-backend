@@ -26,7 +26,7 @@ router.use(protect);
  * @desc Update user profile information
  * @access Private
  */
-router.put("/profile", validate(validations.profileUpdate), updateProfile);
+router.put("/profile", validate(validations.validateProfileUpdate), updateProfile);
 
 /**
  * @route PATCH /api/users/avatar

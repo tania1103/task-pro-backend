@@ -1,79 +1,64 @@
+// Description: User model for MongoDB using Mongoose
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-/**
- * User Schema
- */
-const userSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: [true, 'Name is required'],
-      trim: true,
-      minlength: [3, 'Name must be at least 3 characters'],
-      maxlength: [50, 'Name cannot exceed 50 characters'],
-    },
-    email: {
-      type: String,
-      required: [true, 'Email is required'],
-      unique: true,
-      trim: true,
-      lowercase: true,
-      match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email'],
-    },
-    password: {
-      type: String,
-      required: [true, 'Password is required'],
-      minlength: [6, 'Password must be at least 6 characters'],
-      select: false, // Don't return password in queries
-    },
-    avatar: {
-      type: String,
-      default: '',
-    },
-    theme: {
-      type: String,
-      enum: ['light', 'violet', 'dark'],
-      default: 'light',
-    },
-    googleId: {
-      type: String,
-      sparse: true,
-    },
-    resetPasswordToken: String,
-    resetPasswordExpire: Date,
+const UserSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'Please add a name'],
+    trim: true,
+    minlength: [2, 'Name must be at least 2 characters']
   },
-  {
-    timestamps: true,
+  email: {
+    type: String, 
+    required: [true, 'Please add an email'],
+    unique: true,
+    match: [
+      /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+      'Please add a valid email'
+    ]
+  },
+  password: {
+    type: String,
+    required: [true, 'Please add a password'],
+    minlength: [6, 'Password must be at least 6 characters'],
+    select: false
+  },
+  profileImage: {
+    type: String,
+    default: 'https://res.cloudinary.com/demo/image/upload/v1580125592/samples/people/boy-snow-hoodie.jpg'
+  },
+  theme: {
+    type: String,
+    enum: ['light', 'dark', 'violet'],
+    default: 'light'
+  },
+  googleId: String,
+  isEmailVerified: {
+    type: Boolean,
+    default: false
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
   }
-);
-
-/**
- * Hash password before saving
- */
-userSchema.pre('save', async function(next) {
-  // Only hash password if it's modified or new
-  if (!this.isModified('password')) {
-    return next();
-  }
-  
-  try {
-    // Generate salt and hash password
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
-  }
+}, {
+  timestamps: true
 });
 
-/**
- * Compare password method
- */
-userSchema.methods.comparePassword = async function(enteredPassword) {
+// Encrypt password using bcrypt
+UserSchema.pre('save', async function(next) {
+  if (!this.isModified('password')) {
+    next();
+  }
+
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+});
+
+// Match user entered password to hashed password in database
+UserSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-const User = mongoose.model('User', userSchema);
-
-module.exports = User;
+module.exports = mongoose.model('User', UserSchema);

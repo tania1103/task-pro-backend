@@ -9,19 +9,16 @@ const {
   login,
   logout,
   refreshUser,
-  // refreshToken,
-  // requestPasswordReset,
-  // resetPassword,
   getCurrentUser,
 } = require("../controllers/authController");
 const { protect } = require("../middlewares/authMiddleware");
 const {
-  validateRegistration,
-  validateLogin,
-  validatePasswordReset,
+  validations,
+  validate
 } = require("../middlewares/validationMiddleware");
 
 const router = express.Router();
+
 
 /**
  * @swagger
@@ -59,7 +56,7 @@ const router = express.Router();
  *       400:
  *         description: User already exists or invalid input
  */
-router.post("/register", validateRegistration, register);
+router.post("/register", validate(validations.validateRegistration), register);
 
 /**
  * @swagger
@@ -87,7 +84,7 @@ router.post("/register", validateRegistration, register);
  *       401:
  *         description: Invalid credentials
  */
-router.post("/login", validateLogin, login);
+router.post("/login", validate(validations.validateLogin), login);
 /**
  * @route POST /api/auth/logout
  * @desc Logout user and invalidate token
@@ -116,7 +113,8 @@ router.post("/refresh", protect, refreshUser);
  * @desc Send password reset email to user
  * @access Public
  */
-// router.post("/request-password-reset", requestPasswordReset);
+// router.post("/request-password-reset", requestPasswordReset); // Decomentează când va fi implementat
+// router.post("/reset-password", validate(validations.validatePasswordReset), resetPassword); // Decomentează când va fi implementat
 
 /**
  * @route POST /api/auth/reset-password

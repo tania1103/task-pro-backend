@@ -8,6 +8,17 @@ const dotenv = require("dotenv");
 // Load environment variables
 dotenv.config();
 
+// Validate application configuration
+const { validateAppConfig } = require("./utils/validateConfig");
+
+// Validate all required configurations
+try {
+  validateAppConfig();
+} catch (error) {
+  console.error(`Application startup failed: ${error.message}`);
+  process.exit(1);
+}
+
 // Import error handling middleware
 const { notFound, errorHandler } = require("./middlewares/errorMiddleware");
 
@@ -58,7 +69,6 @@ app.use("/api/users", userRoutes);
 app.use("/api/boards", boardRoutes);
 app.use("/api/columns", columnRoutes);
 app.use("/api/cards", cardRoutes);
-
 
 // Root route
 app.get("/", (req, res) => {

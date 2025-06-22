@@ -8,7 +8,7 @@ dotenv.config();
  * MongoDB connection URI
  * Uses environment variable or default localhost URI
  */
-const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/task_pro';
+const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:5000/task_pro';
 
 /**
  * Connect to MongoDB
@@ -22,10 +22,10 @@ const connectDB = async () => {
       useUnifiedTopology: true,
     });
     
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    console.log(`✅ MongoDB connected successfully: ${conn.connection.host}`);
     return conn;
   } catch (error) {
-    console.error(`Error connecting to MongoDB: ${error.message}`);
+    console.error(`❌ Error connecting to MongoDB: ${error.message}`);
     process.exit(1);
   }
 };

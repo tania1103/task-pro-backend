@@ -1,118 +1,187 @@
-const { validationResult, check } = require("express-validator");
+const { check, validationResult } = require('express-validator');
 
 /**
- * Middleware to validate request data
- * @param {Array} validations - Array of express-validator validation rules
+ * Middleware pentru procesarea rezultatelor validării
+ * @param {Array} validations - Array de reguli de validare
+ * @returns {Array} - Middleware-uri pentru validare și procesare rezultate
  */
 const validate = (validations) => {
-  return async (req, res, next) => {
-    // Execute all validations
-    await Promise.all(validations.map((validation) => validation.run(req)));
-
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (errors.isEmpty()) {
-      return next();
-    }
-
-    // Format validation errors
-    const formattedErrors = errors.array().reduce((acc, error) => {
-      if (!acc[error.path]) {
-        acc[error.path] = [];
+  return [
+  
+    ...validations,
+  
+    (req, res, next) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          status: 'error',
+          errors: errors.array().map(err => ({
+            field: err.path,
+            message: err.msg
+          }))
+        });
       }
-      acc[error.path].push(error.msg);
-      return acc;
-    }, {});
-
-    // Return validation errors
-    return res.status(400).json({
-      message: "Validation Error",
-      errors: formattedErrors,
-    });
-  };
+      next();
+    }
+  ];
 };
 
-/**
- * Common validation rules
- */
 const validations = {
-  // Auth validations
-  login: [
-    check("email").isEmail().withMessage("Please enter a valid email"),
-    check("password").notEmpty().withMessage("Password is required"),
-  ],
-
-  register: [
-    check("name")
-      .notEmpty()
-      .withMessage("Name is required")
-      .isLength({ min: 3 })
-      .withMessage("Name must be at least 3 characters"),
-    check("email").isEmail().withMessage("Please enter a valid email"),
-    check("password")
-      .isLength({ min: 6 })
-      .withMessage("Password must be at least 6 characters"),
-  ],
-
-  profileUpdate: [
-    check("name")
-      .optional()
-      .isLength({ min: 3 })
-      .withMessage("Name must be at least 3 characters"),
-    check("email").optional().isEmail().withMessage("Email must be valid"),
-  ],
-
   // Board validations
-  createBoard: [
-    check("title")
+  validateBoardCreate: [
+    check('title')
       .notEmpty()
-      .withMessage("Title is required")
-      .isLength({ min: 3 })
-      .withMessage("Title must be at least 3 characters")
-      .isLength({ max: 100 })
-      .withMessage("Title cannot exceed 100 characters"),
+      .withMessage('Title is required')
+      .isLength({ min: 3, max: 50 })
+      .withMessage('Title must be between 3 and 50 characters'),
+    check('icon')
+      .optional()
+      .isString()
+      .withMessage('Icon must be a string'),
+    check('background')
+      .optional()
+      .isString()
+      .withMessage('Background must be a string'),
+  ],
+
+  validateBoardUpdate: [
+    check('title')
+      .optional()
+      .isLength({ min: 3, max: 50 })
+      .withMessage('Title must be between 3 and 50 characters'),
+    check('icon')
+      .optional()
+      .isString()
+      .withMessage('Icon must be a string'),
+    check('background')
+      .optional()
+      .isString()
+      .withMessage('Background must be a string'),
   ],
 
   // Column validations
-  createColumn: [
-    check("title")
+  validateColumnCreate: [
+    check('title')
       .notEmpty()
-      .withMessage("Title is required")
-      .isLength({ min: 3 })
-      .withMessage("Title must be at least 3 characters")
-      .isLength({ max: 100 })
-      .withMessage("Title cannot exceed 100 characters"),
-    check("boardId")
+      .withMessage('Title is required')
+      .isLength({ min: 3, max: 50 })
+      .withMessage('Title must be between 3 and 50 characters'),
+    check('board')
       .notEmpty()
-      .withMessage("Board ID is required")
+      .withMessage('Board ID is required')
       .isMongoId()
-      .withMessage("Invalid board ID"),
+      .withMessage('Invalid board ID format'),
+  ],
+
+  validateColumnUpdate: [
+    check('title')
+      .notEmpty()
+      .withMessage('Title is required')
+      .isLength({ min: 3, max: 50 })
+      .withMessage('Title must be between 3 and 50 characters'),
   ],
 
   // Card validations
-  createCard: [
-    check("title")
+  validateCardCreate: [
+    check('title')
       .notEmpty()
-      .withMessage("Title is required")
-      .isLength({ min: 3 })
-      .withMessage("Title must be at least 3 characters")
-      .isLength({ max: 100 })
-      .withMessage("Title cannot exceed 100 characters"),
-    check("columnId")
+      .withMessage('Title is required')
+      .isLength({ min: 3, max: 100 })
+      .withMessage('Title must be between 3 and 100 characters'),
+    check('description')
+      .optional()
+      .isLength({ max: 500 })
+      .withMessage('Description cannot exceed 500 characters'),
+    check('column')
       .notEmpty()
-      .withMessage("Column ID is required")
+      .withMessage('Column ID is required')
       .isMongoId()
-      .withMessage("Invalid column ID"),
-    check("priority")
-      .isIn(["low", "medium", "high"])
-      .withMessage("Priority must be low, medium, or high"),
+      .withMessage('Invalid column ID format'),
+    check('priority')
+      .optional()
+      .isIn(['low', 'medium', 'high'])
+      .withMessage('Priority must be low, medium, or high'),
+    check('dueDate')
+      .optional()
+      .isISO8601()
+      .withMessage('Due date must be a valid date'),
   ],
+
+  validateCardUpdate: [
+    check('title')
+      .optional()
+      .isLength({ min: 3, max: 100 })
+      .withMessage('Title must be between 3 and 100 characters'),
+    check('description')
+      .optional()
+      .isLength({ max: 500 })
+      .withMessage('Description cannot exceed 500 characters'),
+    check('priority')
+      .optional()
+      .isIn(['low', 'medium', 'high'])
+      .withMessage('Priority must be low, medium, or high'),
+    check('dueDate')
+      .optional()
+      .isISO8601()
+      .withMessage('Due date must be a valid date'),
+  ],
+
+  // Authentication validations
+  validateRegistration: [
+    check('name')
+      .notEmpty()
+      .withMessage('Name is required')
+      .isLength({ min: 3 })
+      .withMessage('Name must be at least 3 characters'),
+    check('email')
+      .notEmpty()
+      .withMessage('Email is required')
+      .isEmail()
+      .withMessage('Please enter a valid email')
+      .normalizeEmail(),
+    check('password')
+      .notEmpty()
+      .withMessage('Password is required')
+      .isLength({ min: 6 })
+      .withMessage('Password must be at least 6 characters')
+  ],
+  
+  validateLogin: [
+    check('email')
+      .notEmpty()
+      .withMessage('Email is required')
+      .isEmail()
+      .withMessage('Please enter a valid email')
+      .normalizeEmail(),
+    check('password')
+      .notEmpty()
+      .withMessage('Password is required')
+  ],
+  
+  validatePasswordReset: [
+    check('token')
+      .notEmpty()
+      .withMessage('Token is required'),
+    check('password')
+      .notEmpty()
+      .withMessage('Password is required')
+      .isLength({ min: 6 })
+      .withMessage('Password must be at least 6 characters')
+  ],
+  validateProfileUpdate: [
+  check('name')
+    .optional()
+    .isLength({ min: 3 })
+    .withMessage('Name must be at least 3 characters'),
+  check('email')
+    .optional()
+    .isEmail()
+    .withMessage('Please enter a valid email')
+    .normalizeEmail(),
+]
 };
 
 module.exports = {
-  validate,
   validations,
-  validateRegistration: validate(validations.register),
-  validateLogin: validate(validations.login),
-  validateProfileUpdate: validate(validations.profileUpdate),
+  validate
 };
