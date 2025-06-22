@@ -88,12 +88,22 @@ router.post("/register", validateRegistration, register);
  *         description: Invalid credentials
  */
 router.post("/login", validateLogin, login);
+
 /**
- * @route POST /api/auth/logout
- * @desc Logout user and invalidate token
- * @access Private
+ * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     summary: Logout user and invalidate token
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logged out successfully
+ *       401:
+ *         description: Unauthorized or session not found
  */
-// router.post("/logout", authMiddleware, logout);
+router.post("/logout", protect, logout);
 
 /**
  * @swagger
