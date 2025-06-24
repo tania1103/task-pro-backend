@@ -50,30 +50,27 @@ exports.updateProfile = async (req, res, next) => {
 exports.updateAvatar = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    
-    // Check if file was uploaded
+
     if (!req.file) {
       throw new BadRequestError('No image file provided');
     }
-    
-    // Upload to Cloudinary
+
     const result = await cloudinaryService.uploadImage(req.file.path);
-    
-    // Update user with new avatar URL
+
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { profileImage: result.secure_url },
       { new: true }
     ).select('-password');
-    
+
     if (!updatedUser) {
       throw new NotFoundError('User not found');
     }
-    
+
     res.status(200).json({
       status: 'success',
       data: {
-        avatar: updatedUser.avatar
+        profileImage: updatedUser.profileImage // sau avatar: updatedUser.profileImage dacă vrei cheie avatar
       }
     });
   } catch (error) {

@@ -193,7 +193,7 @@ exports.updateCardsOrder = async (req, res, next) => {
 exports.moveCardToColumn = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { destinationColumnId, order } = req.body;
+    const { newColumnId, newPosition } = req.body;
     
     const card = await Card.findById(id);
     if (!card) {
@@ -204,7 +204,7 @@ exports.moveCardToColumn = async (req, res, next) => {
       throw new ForbiddenError('You do not have permission to move this card');
     }
     
-    const destinationColumn = await Column.findById(destinationColumnId);
+    const destinationColumn = await Column.findById(newColumnId);
     if (!destinationColumn) {
       throw new NotFoundError('Destination column not found');
     }
@@ -215,29 +215,21 @@ exports.moveCardToColumn = async (req, res, next) => {
     
     const sourceColumnId = card.column;
     
-    // Update card with new column and order
-    card.column = destinationColumnId;
-    card.order = order;
-    await card.save();
-    
-    // Reorder cards in the source column
-    await Card.updateMany(
-      { 
-        column: sourceColumnId,
-        order: { $gt: card.order }
-      },
+    // 1. Scoate cardul din coloana veche (ordinele rămase scad)
+   await Card.updateMany(
+      { column: sourceColumnId, order: { $gt: card.order } },
       { $inc: { order: -1 } }
     );
-    
-    // Reorder cards in the destination column
+  // 2. Insera cardul în noua coloană la noua poziție (ceilalți urcă)
     await Card.updateMany(
-      {
-        column: destinationColumnId,
-        _id: { $ne: id },
-        order: { $gte: order }
-      },
+      { column: newColumnId, order: { $gte: newPosition } },
       { $inc: { order: 1 } }
     );
+    
+    // 3. Actualizează cardul propriu-zis
+    card.column = newColumnId;
+    card.order = newPosition;
+    await card.save();
     
     res.status(200).json({
       status: 'success',

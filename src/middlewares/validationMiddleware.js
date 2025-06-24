@@ -125,6 +125,14 @@ const validations = {
       .isISO8601()
       .withMessage('Due date must be a valid date'),
   ],
+  
+  validateCardMove: [
+  check('newColumnId')
+    .notEmpty().withMessage('New column ID is required')
+    .isMongoId().withMessage('Invalid column ID format'),
+  check('newPosition')
+    .isInt({ min: 0 }).withMessage('Position must be a positive integer')
+],
 
   // Authentication validations
   validateRegistration: [
