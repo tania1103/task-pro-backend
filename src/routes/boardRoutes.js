@@ -23,38 +23,151 @@ const router = express.Router();
 router.use(protect);
 
 /**
- * @route POST /api/boards
- * @desc Create a new board
- * @access Private
+ * @swagger
+ * /api/boards:
+ *   post:
+ *     summary: Creează un board nou
+ *     tags: [Boards]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 example: Board nou
+ *               icon:
+ *                 type: string
+ *                 example: "📌"
+ *               background:
+ *                 type: string
+ *                 example: "bg-1"
+ *     responses:
+ *       201:
+ *         description: Board creat
+ *       400:
+ *         description: Date invalide
+ *       401:
+ *         description: Neautorizat
  */
+
 router.post("/", validate(validations.validateBoardCreate), createBoard);
 
 /**
- * @route GET /api/boards
- * @desc Get all boards for the current user
- * @access Private
+ * @swagger
+ * /api/boards:
+ *   get:
+ *     summary: Listă boards ale utilizatorului
+ *     tags: [Boards]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Listă boards
+ *       401:
+ *         description: Neautorizat
  */
+
 router.get("/", getBoards);
 
 /**
- * @route GET /api/boards/:id
- * @desc Get a board by ID
- * @access Private
+ * @swagger
+ * /api/boards/{id}:
+ *   get:
+ *     summary: Returnează un board după ID
+ *     tags: [Boards]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID-ul boardului
+ *     responses:
+ *       200:
+ *         description: Board găsit
+ *       404:
+ *         description: Board inexistent
+ *       401:
+ *         description: Neautorizat
  */
+
 router.get("/:id", getBoard);
 
 /**
- * @route PUT /api/boards/:id
- * @desc Update a board
- * @access Private
+ * @swagger
+ * /api/boards/{id}:
+ *   put:
+ *     summary: Actualizează un board după ID
+ *     tags: [Boards]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID-ul boardului
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 example: Board actualizat
+ *               icon:
+ *                 type: string
+ *                 example: "📊"
+ *               background:
+ *                 type: string
+ *                 example: "bg-2"
+ *     responses:
+ *       200:
+ *         description: Board actualizat
+ *       404:
+ *         description: Board inexistent
+ *       401:
+ *         description: Neautorizat
  */
+
 router.put("/:id", validate(validations.validateBoardUpdate), updateBoard);
 
 /**
- * @route DELETE /api/boards/:id
- * @desc Delete a board
- * @access Private
+ * @swagger
+ * /api/boards/{id}:
+ *   delete:
+ *     summary: Șterge un board după ID
+ *     tags: [Boards]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID-ul boardului
+ *     responses:
+ *       204:
+ *         description: Board șters
+ *       404:
+ *         description: Board inexistent
+ *       401:
+ *         description: Neautorizat
  */
+
 router.delete("/:id", deleteBoard);
 
 module.exports = router;

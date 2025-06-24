@@ -4,8 +4,8 @@
  */
 
 const express = require("express");
-const multer = require("multer");
-const path = require("path");
+const router = express.Router();
+
 const {
   updateProfile,
   updateAvatar,
@@ -13,35 +13,12 @@ const {
   deleteAccount,
 } = require("../controllers/userController");
 const { protect } = require("../middlewares/authMiddleware");
-const {
-  validate,
-  validations,
-} = require("../middlewares/validationMiddleware");
+const upload = require('../middlewares/uploadMiddleware');
+const { validate, validations } = require("../middlewares/validationMiddleware");
 
-// Configurare Multer pentru upload temporar
-const upload = multer({
-  dest: "uploads/",
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limită
-  },
-  fileFilter: (req, file, cb) => {
-    // Acceptă doar imagini
-    const filetypes = /jpeg|jpg|png|webp/;
-    const mimetype = filetypes.test(file.mimetype);
-    const extname = filetypes.test(
-      path.extname(file.originalname).toLowerCase()
-    );
-
-    if (mimetype && extname) {
-      return cb(null, true);
-    }
-    cb(new Error("Only image files are allowed!"));
-  },
-});
-
-const router = express.Router();
-
-// All user routes require authentication
+/**
+ * Toate rutele necesită autentificare
+ */
 router.use(protect);
 
 /**
@@ -84,28 +61,6 @@ router.put("/profile", validate(validations.validateProfileUpdate), updateProfil
  *   patch:
  *     summary: Update user avatar
  *     tags: [Users]
- *     description: |
- *       ## Frontend Implementation Guide:
- *       1. Create a form with `enctype="multipart/form-data"`
- *       2. Add file input: `<input type="file" name="avatar" accept="image/*">`
- *       3. Example JavaScript code:
- *       ```js
- *       const form = new FormData();
- *       form.append('avatar', fileInput.files[0]);
- *       
- *       fetch('/api/users/avatar', {
- *         method: 'PATCH',
- *         headers: {
- *           'Authorization': `Bearer ${token}`
- *         },
- *         body: form
- *       })
- *       .then(response => response.json())
- *       .then(data => {
- *         // Update UI with new avatar URL
- *         userAvatar.src = data.data.profileImage;
- *       });
- *       ```
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -135,7 +90,7 @@ router.put("/profile", validate(validations.validateProfileUpdate), updateProfil
  *                   properties:
  *                     profileImage:
  *                       type: string
- *                       example: "https://res.cloudinary.com/dxxxx/image/upload/v1623451234/taskpro/avatars/abc123.jpg"
+ *                       example: "https://res.cloudinary.com/xxxx/image/upload/v1623451234/taskpro/avatars/abc123.jpg"
  *       400:
  *         description: No image provided or invalid image format
  *       401:
@@ -143,7 +98,7 @@ router.put("/profile", validate(validations.validateProfileUpdate), updateProfil
  *       404:
  *         description: User not found
  */
-router.patch("/avatar", upload.single("avatar"), updateAvatar);
+router.patch('/avatar', upload.single('avatar'), updateAvatar);
 
 /**
  * @swagger
