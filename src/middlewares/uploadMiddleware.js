@@ -1,29 +1,26 @@
-// middleware/upload.js
-const multer = require('multer');
-const path = require('path');
+const multer = require("multer");
+const path = require("path");
 
-// Storage: temporar pe disc
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/'); // Asigură-te că această directoare există!
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
   },
-  filename: function (req, file, cb) {
-    // Exemplu: userId_timestamp.extensie
-    const ext = path.extname(file.originalname);
-    cb(null, req.user ? req.user.id + '_' + Date.now() + ext : Date.now() + ext);
-  }
 });
 
-// Opțional: acceptă doar imagini
+// Acceptă doar imagini
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only image files are allowed!'), false);
-  }
+  const allowed = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
+  if (allowed.includes(file.mimetype)) cb(null, true);
+  else cb(new Error("Invalid file type. Only images are allowed!"), false);
 };
 
-const upload = multer({ storage, fileFilter });
+// Limitați la 5 MB
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
 
 module.exports = upload;

@@ -44,34 +44,26 @@ exports.updateProfile = async (req, res, next) => {
   }
 };
 
-/**
- * Update user avatar
- */
+// PATCH /api/users/profileImage
 exports.updateAvatar = async (req, res, next) => {
   try {
-    const userId = req.user.id;
+    if (!req.file) return res.status(400).json({ message: "No image provided" });
 
-    if (!req.file) {
-      throw new BadRequestError('No image file provided');
-    }
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    const result = await cloudinaryService.uploadImage(req.file.path);
+    // Upload imagine la Cloudinary
+    const result = await cloudinaryService.uploadImage(req.file.path, {
+      folder: "task_pro/avatars",
+      transformation: [{ width: 256, height: 256, crop: "fill" }],
+    });
 
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { profileImage: result.secure_url },
-      { new: true }
-    ).select('-password');
-
-    if (!updatedUser) {
-      throw new NotFoundError('User not found');
-    }
+    user.profileImage = result.secure_url;
+    await user.save();
 
     res.status(200).json({
-      status: 'success',
-      data: {
-        profileImage: updatedUser.profileImage // sau avatar: updatedUser.profileImage dacă vrei cheie avatar
-      }
+      status: "success",
+      data: { profileImage: user.profileImage }
     });
   } catch (error) {
     next(error);

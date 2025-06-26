@@ -1,4 +1,5 @@
 const asyncHandler = require("express-async-handler");
+const cloudinaryService = require("../services/cloudinaryService");
 const Board = require("../models/Board");
 const Column = require("../models/Column");
 const Card = require("../models/Card");
@@ -72,6 +73,36 @@ const createBoard = async (req, res) => {
     });
   }
 };
+// PATCH /api/boards/:id/background
+const uploadBoardBackground = async (req, res, next) => {
+  try {
+    const board = await Board.findById(req.params.id);
+    if (!board) return res.status(404).json({ message: "Board not found" });
+
+    // (Exemplu pentru proprietar, adaptează la logica ta)
+    if (board.owner && board.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    if (!req.file) return res.status(400).json({ message: "No image file provided" });
+
+    const result = await cloudinaryService.uploadImage(req.file.path, {
+      folder: "task_pro/boards",
+      transformation: [{ width: 1200, height: 400, crop: "fill" }],
+    });
+
+    board.background = result.secure_url;
+    await board.save();
+
+    res.status(200).json({
+      status: "success",
+      data: { background: board.background }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 // Update a board
 const updateBoard = asyncHandler(async (req, res) => {
@@ -129,5 +160,6 @@ module.exports = {
   getBoard,
   createBoard,
   updateBoard,
+  uploadBoardBackground,
   deleteBoard,
 };

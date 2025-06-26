@@ -9,8 +9,10 @@ const {
   getBoards,
   getBoard,
   updateBoard,
-  deleteBoard,
+  uploadBoardBackground,
+  deleteBoard, 
 } = require("../controllers/boardController");
+const upload = require("../middlewares/uploadMiddleware");
 const { protect } = require("../middlewares/authMiddleware");
 const {
   validate,
@@ -143,6 +145,41 @@ router.get("/:id", getBoard);
  */
 
 router.put("/:id", validate(validations.validateBoardUpdate), updateBoard);
+
+/**
+ * @swagger
+ * /api/boards/{id}/background:
+ *   patch:
+ *     summary: Upload board background image
+ *     tags: [Boards]
+ *     security:
+ *       - bearerAuth: []
+ *     consumes:
+ *       - multipart/form-data
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Board ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Board background uploaded successfully
+ *       400:
+ *         description: Error message
+ */
+router.patch('/:id/background', upload.single('image'), uploadBoardBackground);
 
 /**
  * @swagger
