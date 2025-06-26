@@ -17,7 +17,7 @@ const {
 const { protect } = require("../middlewares/authMiddleware");
 const {
   validations,
-  validate
+  validate,
 } = require("../middlewares/validationMiddleware");
 
 const router = express.Router();
@@ -139,7 +139,7 @@ router.post("/logout", protect, logout);
  *       401:
  *         description: Unauthorized
  */
-router.post("/refresh", protect, refreshUser);
+router.post("/refresh", refreshUser);
 
 /**
  * @swagger
@@ -155,7 +155,7 @@ router.post("/refresh", protect, refreshUser);
  *       401:
  *         description: Unauthorized
  */
-router.get("/me", protect, getCurrentUser);
+router.get("/me", getCurrentUser);
 
 /**
  * @swagger
@@ -167,8 +167,9 @@ router.get("/me", protect, getCurrentUser);
  *       302:
  *         description: Redirect to Google for authentication
  */
-router.get('/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] })
+router.get(
+  "/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
 /**
@@ -192,26 +193,25 @@ router.get('/google',
  *       401:
  *         description: Authentication failed
  */
-router.get('/google/callback',
-  passport.authenticate('google', { session: false, failureRedirect: '/' }),
+router.get(
+  "/google/callback",
+  passport.authenticate("google", { session: false, failureRedirect: "/" }),
   async (req, res) => {
     // Generează JWT și returnează-l
-    const token = jwt.sign(
-      { id: req.user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "20d" }
-    );
+    const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES_IN || "20d",
+    });
     res.json({
       user: {
         _id: req.user._id,
         name: req.user.name,
         email: req.user.email,
         theme: req.user.theme,
-        profileImage: req.user.profileImage
+        profileImage: req.user.profileImage,
       },
-      token
+      token,
     });
-    //  Redirect spre frontend: 
+    //  Redirect spre frontend:
     // res.redirect(`${process.env.FRONTEND_URL}/auth/google/success?token=${token}`)
   }
 );

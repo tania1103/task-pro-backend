@@ -158,6 +158,10 @@ router.patch("/theme", validate(validations.validateThemeUpdate), updateTheme);
  */
 router.get("/theme", getTheme);
 
+// Adăugat pentru compatibilitate cu frontend-ul
+router.patch('/current/theme', validate(validations.validateThemeUpdate), updateTheme);
+
+
 /**
  * @swagger
  * /api/users/account:
