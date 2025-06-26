@@ -130,7 +130,7 @@ router.patch('/avatar', upload.single('avatar'), updateAvatar);
  *       401:
  *         description: Not authenticated
  */
-router.patch("/theme", validate(validations.validateThemeUpdate), updateTheme);
+router.patch("/current/theme", validate(validations.validateThemeUpdate), updateTheme);
 /**
  * @swagger
  * /api/users/theme:
