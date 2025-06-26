@@ -14,12 +14,6 @@ const readFileAsync = promisify(fs.readFile);
  * Create email transport based on environment
  */
 const createTransport = () => {
-  // Debug: vezi ENV la start (poți șterge după test)
-  console.log('EMAIL_HOST:', process.env.EMAIL_HOST);
-  console.log('EMAIL_PORT:', process.env.EMAIL_PORT);
-  console.log('EMAIL_USERNAME:', process.env.EMAIL_USERNAME);
-  console.log('EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD);
-  console.log('NODE_ENV:', process.env.NODE_ENV);
 
   // Production: folosește .env: EMAIL_SERVICE (ex: 'Gmail', 'SendGrid')
   if (process.env.NODE_ENV === 'production' && process.env.EMAIL_SERVICE) {
@@ -35,7 +29,7 @@ const createTransport = () => {
     return nodemailer.createTransport({
       host: process.env.EMAIL_HOST || 'smtp.ethereal.email',
       port: process.env.EMAIL_PORT ? parseInt(process.env.EMAIL_PORT) : 587,
-      secure: false, // use TLS/STARTTLS; true pentru 465
+      secure: false, // use TLS/STARTTLS; true pentru 587
       auth: {
         user: process.env.EMAIL_USERNAME,
         pass: process.env.EMAIL_PASSWORD
