@@ -10,6 +10,7 @@ const {
   updateProfile,
   updateAvatar,
   updateTheme,
+  getTheme,
   deleteAccount,
 } = require("../controllers/userController");
 const { protect } = require("../middlewares/authMiddleware");
@@ -129,7 +130,33 @@ router.patch('/avatar', upload.single('avatar'), updateAvatar);
  *       401:
  *         description: Not authenticated
  */
-router.patch("/theme", updateTheme);
+router.patch("/theme", validate(validations.validateThemeUpdate), updateTheme);
+/**
+ * @swagger
+ * /api/users/theme:
+ *   get:
+ *     summary: Get user theme preference
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Returns user theme
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 theme:
+ *                   type: string
+ *                   enum: [light, dark, violet]
+ *                   example: "light"
+ *       401:
+ *         description: Not authenticated
+ *       404:
+ *         description: User not found
+ */
+router.get("/theme", getTheme);
 
 /**
  * @swagger

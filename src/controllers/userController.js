@@ -115,6 +115,22 @@ exports.updateTheme = async (req, res, next) => {
 };
 
 /**
+ * Get current user theme preference
+ */
+exports.getTheme = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId).select('theme');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json({ theme: user.theme });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Delete user account
  */
 exports.deleteAccount = async (req, res, next) => {

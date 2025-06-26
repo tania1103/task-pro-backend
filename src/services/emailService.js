@@ -14,9 +14,15 @@ const readFileAsync = promisify(fs.readFile);
  * Create email transport based on environment
  */
 const createTransport = () => {
-  // Use environment variables for configuration
-  if (process.env.NODE_ENV === 'production') {
-    // Production mail service (e.g., SendGrid, Mailgun, etc.)
+  // Debug: vezi ENV la start (poți șterge după test)
+  console.log('EMAIL_HOST:', process.env.EMAIL_HOST);
+  console.log('EMAIL_PORT:', process.env.EMAIL_PORT);
+  console.log('EMAIL_USERNAME:', process.env.EMAIL_USERNAME);
+  console.log('EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD);
+  console.log('NODE_ENV:', process.env.NODE_ENV);
+
+  // Production: folosește .env: EMAIL_SERVICE (ex: 'Gmail', 'SendGrid')
+  if (process.env.NODE_ENV === 'production' && process.env.EMAIL_SERVICE) {
     return nodemailer.createTransport({
       service: process.env.EMAIL_SERVICE,
       auth: {
@@ -25,10 +31,11 @@ const createTransport = () => {
       }
     });
   } else {
-    // Development mail service (ethereal.email)
+    // Development: SMTP custom sau Ethereal
     return nodemailer.createTransport({
       host: process.env.EMAIL_HOST || 'smtp.ethereal.email',
-      port: process.env.EMAIL_PORT || 587,
+      port: process.env.EMAIL_PORT ? parseInt(process.env.EMAIL_PORT) : 587,
+      secure: false, // use TLS/STARTTLS; true pentru 465
       auth: {
         user: process.env.EMAIL_USERNAME,
         pass: process.env.EMAIL_PASSWORD
@@ -58,25 +65,30 @@ const loadTemplate = async (templateName, data) => {
 exports.sendEmail = async (options) => {
   try {
     const transport = createTransport();
-    
+
     const mailOptions = {
       from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM_ADDRESS}>`,
       to: options.email,
       subject: options.subject,
       html: options.html
     };
-    
+
     // Add attachments if provided
     if (options.attachments) {
       mailOptions.attachments = options.attachments;
     }
-    
+
     const result = await transport.sendMail(mailOptions);
-    
+
+    // În development (Ethereal), afișează linkul de preview
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Preview URL:', nodemailer.getTestMessageUrl(result));
+    }
+
     return result;
   } catch (error) {
-    console.error('Error sending email:', error);
-    throw new Error('Failed to send email');
+    console.error('ERROR FULL:', error);
+    throw error;
   }
 };
 
@@ -90,7 +102,7 @@ exports.sendWelcomeEmail = async (user) => {
     name: user.name,
     appUrl: process.env.FRONTEND_URL
   });
-  
+
   return this.sendEmail({
     email: user.email,
     subject: 'Welcome to Task Pro!',
@@ -106,16 +118,24 @@ exports.sendWelcomeEmail = async (user) => {
  */
 exports.sendPasswordResetEmail = async (user, resetToken) => {
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-  
+
   const html = await loadTemplate('passwordReset', {
     name: user.name,
     resetUrl,
     expiryHours: 1 // Token expires in 1 hour
   });
-  
+
   return this.sendEmail({
     email: user.email,
     subject: 'Password Reset Request',
     html
   });
 };
+
+/**
+ * Load an email template by name and compile it with data
+ * @param {string} templateName - Name of the template file (without extension)
+ * @param {Object} data - Data to inject into the template
+ * @returns {Promise<string>} - Compiled HTML string
+ */
+exports.loadTemplate = loadTemplate;

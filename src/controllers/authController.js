@@ -151,44 +151,39 @@ const logout = asyncHandler(async (req, res) => {
  * @access  Private
  */
 const refreshUser = asyncHandler(async (req, res) => {
-  // Utilizatorul este deja atașat la req de către middleware-ul protect
-  // Generăm un nou token de acces
-  const token = generateToken(req.user._id);
-  
-  // Obținem refresh token-ul existent sau generăm unul nou
-  let refreshToken;
-  
-  if (req.body.refreshToken) {
-    // Verificăm dacă refresh token-ul există în baza de date
-    const session = await Session.findOne({ 
-      userId: req.user._id, 
-      refreshToken: req.body.refreshToken 
-    });
-    
-    if (session) {
-      refreshToken = req.body.refreshToken;
-      
-      // Actualizăm data de expirare a sesiunii
-      const expiresIn = process.env.JWT_REFRESH_EXPIRES_IN || "30d";
-      const expiryDays = expiresIn.endsWith("d") ? parseInt(expiresIn) : 30;
-      
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + expiryDays);
-      
-      session.expiresAt = expiresAt;
-      await session.save();
-    } else {
-      // Dacă sesiunea nu există, creăm una nouă
-      const newSession = await createSession(req.user._id, req);
-      refreshToken = newSession.refreshToken;
-    }
-  } else {
-    // Dacă nu este furnizat un refresh token, creăm o sesiune nouă
-    const newSession = await createSession(req.user._id, req);
-    refreshToken = newSession.refreshToken;
+  const { refreshToken } = req.body;
+
+  // Validează prezența refreshToken-ului
+  if (!refreshToken) {
+    res.status(400);
+    throw new Error("Refresh token is required.");
   }
-  
-  // Trimitem răspunsul
+
+  // Caută sesiunea după userId și refreshToken
+  const session = await Session.findOne({
+    userId: req.user._id,
+    refreshToken
+  });
+
+  // Verifică existența și expirarea sesiunii
+  if (!session || session.expiresAt < new Date()) {
+    res.status(401);
+    throw new Error("Invalid refresh token or session expired");
+  }
+
+  // Generează un nou access token
+  const token = generateToken(req.user._id);
+
+  // (Opțional) Actualizează data de expirare a sesiunii
+  const expiresIn = process.env.JWT_REFRESH_EXPIRES_IN || "30d";
+  const expiryDays = expiresIn.endsWith("d") ? parseInt(expiresIn) : 30;
+  const newExpiresAt = new Date();
+  newExpiresAt.setDate(newExpiresAt.getDate() + expiryDays);
+
+  session.expiresAt = newExpiresAt;
+  await session.save();
+
+  // Trimite răspunsul
   res.json({
     user: formatUserResponse(req.user),
     token,

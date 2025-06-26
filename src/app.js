@@ -1,3 +1,4 @@
+
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -28,6 +29,7 @@ const userRoutes = require("./routes/userRoutes");
 const boardRoutes = require("./routes/boardRoutes");
 const columnRoutes = require("./routes/columnRoutes");
 const cardRoutes = require("./routes/cardRoutes");
+const needHelpRoutes = require('./routes/needHelpRoutes'); // Import need help routes
 
 // Import API documentation setup
 const setupSwagger = require("./docs/swagger");
@@ -57,16 +59,15 @@ if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
-// Parse JSON request bodies
+// Parse JSON request bodies -- BODY PARSER TREBUIE SĂ FIE ÎNAINTEA RUTELOR!
 app.use(express.json());
-
-// Parse URL-encoded request bodies
 app.use(express.urlencoded({ extended: false }));
 
 // Serve static files
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-// API routes
+// API routes - TOATE rutele după body parser!
+app.use('/api/need-help', needHelpRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/boards", boardRoutes);

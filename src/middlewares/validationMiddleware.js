@@ -153,7 +153,7 @@ const validations = {
       .isLength({ min: 6 })
       .withMessage('Password must be at least 6 characters')
   ],
-  
+  // Login validations
   validateLogin: [
     check('email')
       .notEmpty()
@@ -165,7 +165,7 @@ const validations = {
       .notEmpty()
       .withMessage('Password is required')
   ],
-  
+  // Password reset validations
   validatePasswordReset: [
     check('token')
       .notEmpty()
@@ -176,6 +176,7 @@ const validations = {
       .isLength({ min: 6 })
       .withMessage('Password must be at least 6 characters')
   ],
+  // Profile validation
   validateProfileUpdate: [
   check('name')
     .optional()
@@ -186,7 +187,24 @@ const validations = {
     .isEmail()
     .withMessage('Please enter a valid email')
     .normalizeEmail(),
+],
+// Theme validation
+validateThemeUpdate: [
+  check('theme')
+    .notEmpty().withMessage('Theme is required')
+    .isIn(['light', 'dark', 'violet']).withMessage('Theme must be one of: light, dark, violet')
+],
+
+// Contact form validation
+validateNeedHelp: [
+  check('email')
+    .notEmpty().withMessage('Email is required')
+    .isEmail().withMessage('Invalid email format'),
+  check('comment')
+    .notEmpty().withMessage('Comment is required')
+    .isLength({ min: 5, max: 1000 }).withMessage('Comment must be between 5 and 1000 characters'),
 ]
+
 };
 
 module.exports = {
