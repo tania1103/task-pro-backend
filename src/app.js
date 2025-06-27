@@ -50,10 +50,12 @@ app.use(
     origin: function (origin, callback) {
       // Define allowed origins
       const allowedOrigins = [
-        process.env.FRONTEND_URL,          // Main frontend
-        "http://localhost:3000",           // Local development frontend
-        process.env.SERVER_URL,            // Server URL for API testing
-        "https://task-pro-backend-5kph.onrender.com" // Explicit hosting URL
+        process.env.FRONTEND_URL,            // Main frontend
+        "http://localhost:3000",
+        "https://task-pro-backend-5kph.onrender.com",             // Local development frontend
+        process.env.SERVER_URL,              // Server URL for API testing
+        "https://task-pro-backend-5kph.onrender.com", // Explicit hosting URL
+        "https://tania1103.github.io/Task_Pro/"       // GitHub Pages URL
       ].filter(Boolean);  // Remove null/undefined values
 
       // Allow requests without origin (like calls from Postman or direct navigation)
