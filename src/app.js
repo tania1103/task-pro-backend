@@ -44,16 +44,34 @@ app.use(passport.initialize());
 // Security headers
 app.use(helmet());
 
-// CORS setup
+// CORS setup - improved configuration for multiple origins
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    origin: function (origin, callback) {
+      // Define allowed origins
+      const allowedOrigins = [
+        process.env.FRONTEND_URL,          // Main frontend
+        "http://localhost:3000",           // Local development frontend
+        process.env.SERVER_URL,            // Server URL for API testing
+        "https://task-pro-backend-5kph.onrender.com" // Explicit hosting URL
+      ].filter(Boolean);  // Remove null/undefined values
+
+      // Allow requests without origin (like calls from Postman or direct navigation)
+      if (!origin) return callback(null, true);
+
+      // Check if the request origin is in the list of allowed origins
+      if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origin ${origin} not allowed by CORS policy`));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
     credentials: true,
+    maxAge: 86400  // Extend preflight cache for 24 hours (in seconds)
   })
 );
-
 // Request logging in development
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));

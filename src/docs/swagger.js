@@ -23,7 +23,7 @@ const swaggerOptions = {
           description: "Development server",
         },
         {
-          url: "https://task-pro-api.herokuapp.com",
+          url: "https://task-pro-backend-5kph.onrender.com",
           description: "Production server",
         },
       ],
