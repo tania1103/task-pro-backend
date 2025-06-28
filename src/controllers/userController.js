@@ -58,15 +58,16 @@ exports.updateAvatar = async (req, res, next) => {
       transformation: [{ width: 256, height: 256, crop: "fill" }],
     });
 
-    user.profileImage = result.secure_url;
-    await user.save();
+    req.user.profileImage = result.secure_url;
+    await req.user.save();
 
-    res.status(200).json({
-      status: "success",
-      data: { profileImage: user.profileImage }
+   // Răspuns cu URL-ul imaginii
+    res.json({ 
+      profileImage: result.secure_url,
+      message: "Avatar updated successfully" 
     });
   } catch (error) {
-    next(error);
+    res.status(500).json({ message: error.message });
   }
 };
 

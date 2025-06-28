@@ -58,7 +58,7 @@ const formatUserResponse = (user) => ({
   _id: user._id,
   name: user.name,
   email: user.email,
-  avatar: user.avatar,
+  profileImage: user.profileImage,  // Folosim proprietatea corectă profileImage
   theme: user.theme,
 });
 
