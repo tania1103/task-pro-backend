@@ -4,14 +4,7 @@
  */
 
 const express = require("express");
-const {
-  createBoard,
-  getBoards,
-  getBoard,
-  updateBoard,
-  uploadBoardBackground,
-  deleteBoard,
-} = require("../controllers/boardController");
+const boardController = require("../controllers/boardController");
 
 const upload = require("../middlewares/uploadMiddleware");
 const { protect } = require("../middlewares/authMiddleware");
@@ -63,7 +56,7 @@ router.post(
   "/",
   upload.none(), // Acceptă form-data (fără fișier)
   validate(validations.validateBoardCreate),
-  createBoard
+  boardController.createBoard
 );
 
 /**
@@ -80,7 +73,7 @@ router.post(
  *       401:
  *         description: Neautorizat
  */
-router.get("/", getBoards);
+router.get("/", boardController.getBoards);
 
 /**
  * @swagger
@@ -105,7 +98,7 @@ router.get("/", getBoards);
  *       401:
  *         description: Neautorizat
  */
-router.get("/:id", getBoard);
+router.get("/:id", boardController.getBoard);
 
 /**
  * @swagger
@@ -146,7 +139,7 @@ router.get("/:id", getBoard);
  *       401:
  *         description: Neautorizat
  */
-router.put("/:id", validate(validations.validateBoardUpdate), updateBoard);
+router.put("/:id", validate(validations.validateBoardUpdate), boardController.updateBoard);
 
 /**
  * @swagger
@@ -213,6 +206,6 @@ router.patch(
  *       401:
  *         description: Neautorizat
  */
-router.delete("/:id", deleteBoard);
+router.delete("/:id", boardController.deleteBoard);
 
 module.exports = router;
