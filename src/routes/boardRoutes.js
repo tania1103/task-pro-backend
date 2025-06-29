@@ -10,8 +10,9 @@ const {
   getBoard,
   updateBoard,
   uploadBoardBackground,
-  deleteBoard, 
+  deleteBoard,
 } = require("../controllers/boardController");
+
 const upload = require("../middlewares/uploadMiddleware");
 const { protect } = require("../middlewares/authMiddleware");
 const {
@@ -21,7 +22,7 @@ const {
 
 const router = express.Router();
 
-// All board routes require authentication
+// 🔐 Toate rutele necesită autentificare
 router.use(protect);
 
 /**
@@ -58,14 +59,18 @@ router.use(protect);
  *       401:
  *         description: Neautorizat
  */
-
-router.post("/", validate(validations.validateBoardCreate), createBoard);
+router.post(
+  "/",
+  upload.none(), // Acceptă form-data (fără fișier)
+  validate(validations.validateBoardCreate),
+  createBoard
+);
 
 /**
  * @swagger
  * /api/boards:
  *   get:
- *     summary: Listă boards ale utilizatorului
+ *     summary: Returnează lista de boards pentru utilizator
  *     tags: [Boards]
  *     security:
  *       - bearerAuth: []
@@ -75,7 +80,6 @@ router.post("/", validate(validations.validateBoardCreate), createBoard);
  *       401:
  *         description: Neautorizat
  */
-
 router.get("/", getBoards);
 
 /**
@@ -89,9 +93,9 @@ router.get("/", getBoards);
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
  *         description: ID-ul boardului
  *     responses:
  *       200:
@@ -101,7 +105,6 @@ router.get("/", getBoards);
  *       401:
  *         description: Neautorizat
  */
-
 router.get("/:id", getBoard);
 
 /**
@@ -115,9 +118,9 @@ router.get("/:id", getBoard);
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
  *         description: ID-ul boardului
  *     requestBody:
  *       required: true
@@ -143,26 +146,23 @@ router.get("/:id", getBoard);
  *       401:
  *         description: Neautorizat
  */
-
 router.put("/:id", validate(validations.validateBoardUpdate), updateBoard);
 
 /**
  * @swagger
  * /api/boards/{id}/background:
  *   patch:
- *     summary: Upload board background image
+ *     summary: Încarcă imagine personalizată ca background pentru board
  *     tags: [Boards]
  *     security:
  *       - bearerAuth: []
- *     consumes:
- *       - multipart/form-data
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
- *         description: Board ID
+ *         description: ID-ul boardului
  *     requestBody:
  *       required: true
  *       content:
@@ -175,26 +175,35 @@ router.put("/:id", validate(validations.validateBoardUpdate), updateBoard);
  *                 format: binary
  *     responses:
  *       200:
- *         description: Board background uploaded successfully
+ *         description: Imagine încărcată cu succes
  *       400:
- *         description: Error message
+ *         description: Eroare validare
+ *       401:
+ *         description: Neautorizat
+ *       404:
+ *         description: Board inexistent
  */
-router.patch('/:id/background', upload.single('image'), uploadBoardBackground);
+// In boardRoutes.js
+router.patch(
+  "/:id/background",
+  upload.single("image"),
+  boardController.uploadBoardBackground // ⛔ NU uploadCustomBackground!
+);
 
 /**
  * @swagger
  * /api/boards/{id}:
  *   delete:
- *     summary: Șterge un board după ID
+ *     summary: Șterge un board
  *     tags: [Boards]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
  *         description: ID-ul boardului
  *     responses:
  *       204:
@@ -204,7 +213,6 @@ router.patch('/:id/background', upload.single('image'), uploadBoardBackground);
  *       401:
  *         description: Neautorizat
  */
-
 router.delete("/:id", deleteBoard);
 
 module.exports = router;
